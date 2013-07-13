@@ -4,5 +4,6 @@
     <string name="hello">Hello World, AndroidEarthquakeBotActivity!</string>
     <string name="app_name">AndroidEarthquakeBot</string>
     <string name="EarthquakeBotTitle1">EarthquakeBot </string>
+    <string name="msgEarthquakeBot">&quot;There may not be any data to show. Press refresh to try again. &quot;</string>
 
 </resources>

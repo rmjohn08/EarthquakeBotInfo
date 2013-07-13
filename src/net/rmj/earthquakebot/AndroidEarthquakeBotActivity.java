@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import android.app.ListActivity;
+import android.app.ProgressDialog;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
@@ -11,20 +12,24 @@ import android.content.ServiceConnection;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.IBinder;
-import android.preference.PreferenceManager;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.ArrayAdapter;
 import android.widget.Toast;
 /**
  * This an app that loads tweets from earthquakeBot into a List.  
- * todo: make it refresh on demand? scheduler ?
- * 		 put in into a service and get notification based on a City or Country
- * 		 service should be efficient without consuming too much battery. 
- * 		 
+ * todo: better use of events onCreate, onPause
+ * 		 be able to add a place based on the description
+ * 		 add progress bar or messaging to wait.. 
+ * Dialog based on this 
+ * http://www.helloandroid.com/tutorials/using-threads-and-progressdialog
+ * 		
+ * Originally based on: 
  * 		 follow tutorial http://www.vogella.de/articles/AndroidServices/article.html#service
  * 		 chapter 5 could be used for this.
  * http://developer.android.com/guide/topics/ui/notifiers/notifications.html should be used for notifications
+ * 
  * @author Ronaldo Johnson
  * February 7, 2012. 
  */
@@ -41,14 +46,18 @@ public class AndroidEarthquakeBotActivity extends ListActivity {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        Log.i("AndroidEarthquakeBot","Creating app...");
         try {
         	//setContentView(R.layout.main);
-        	bindService();
-        	tweets = new ArrayList<String>();
-        	adapter = new ArrayAdapter<String>(this,R.layout.main,R.id.earthquakeTweets,tweets);
-        		this.setListAdapter(adapter);
-        		
-        	refreshTweets();
+        	//bindService();
+        	//tweets = new ArrayList<String>();
+        	//adapter = new ArrayAdapter<String>(this,R.layout.main,
+        	//		R.id.earthquakeTweets,tweets);
+        	
+        	//refreshTweets();
+        	//tweets.add("No earthquake data found. Use Refresh to try again.") ;
+			//adapter.notifyDataSetChanged();
+			
         	
         } catch (Exception ex) {
         	ex.printStackTrace();
@@ -56,17 +65,50 @@ public class AndroidEarthquakeBotActivity extends ListActivity {
       
     }
     
+    /*
+    public void onStart() {
+    	super.onStart();
+    	Log.i("AndroidEarthquakeBot", "Starting app...");
+    	
+    	
+    }
+    
+    public void onResume() {
+    	super.onResume();
+    	Log.i("AndroidEarthquakeBot","Resuming app...");
+    	tweets = new ArrayList<String>();
+    	adapter = new ArrayAdapter<String>(this,R.layout.main,R.id.earthquakeTweets,tweets);
+    	//this..setListAdapter(adapter);
+    	
+    	
+    	//this is extra because it seems it will be always false
+    	if (service!=null) {
+    		this.getTweetsFromService(false);
+    	} else {
+    		//ProgressDialog pd = ProgressDialog.show(AndroidEarthquakeBotActivity.this,"Loading","Please wait");
+    		//pd.show();
+    		refreshTweets();
+    		if (tweets.isEmpty()) {
+    			tweets.add("No earthquake data found. Use Refresh to try again.") ;
+    			adapter.notifyDataSetChanged();
+    			
+    		}
+    		//pd.dismiss();
+    	}
+    }
+   */
+    
     /**
      * called when the Menu key of the device is clicked
      * @return
      */
-    public boolean onCreateOptionsMenu(Menu menu) {
+    /*public boolean onCreateOptionsMenu(Menu menu) {
     	//creates the option menu
     	menu.add(0, REFRESH_ID, 0, "Refresh");
     	menu.add(0, PREFERENCES_ID, 0, "Preferences");
     	
     	return true;
-    }
+    }*/
     
     /**
      * when the option is selected from the menu
@@ -110,20 +152,33 @@ public class AndroidEarthquakeBotActivity extends ListActivity {
     	
     };
     
+    /**
+     * the service connection and binding is not triggered until after  onResume, onStart.
+     */
     private void bindService() {
     	bindService(new Intent(this,EarthquakeInfoService.class),serviceConnection,Context.BIND_AUTO_CREATE);
     	
     }
     
-    public void getTweetsFromService() {
+    public void getTweetsFromService(boolean refresh) {
+    	if (service==null) return;
     	
-    	service.getTweetsList(true);
+    	List l = service.getTweetsList(refresh);
+    	if (l!=null && !l.isEmpty()) {
+    		tweets.clear(); //clear the list, DO NOT reinstantiate
+    		tweets.addAll(l);
+    		adapter.notifyDataSetChanged();
+    	}
     	
     }
 
+    /**
+     * it queries the earthquakeBot without using the service
+     */
 	public void refreshTweets() {
 		//I could get this directly from the service or refresh directly from the tweetBot
 		//i chose to directly refresh from the tweetBot
+		
         EarthquakeXMLParser parser = new EarthquakeXMLParser(this);
         List<EarthquakeBot> list = parser.getResult();
         
@@ -144,6 +199,8 @@ public class AndroidEarthquakeBotActivity extends ListActivity {
         	if (eResults.getEarthquakes()!=null && !eResults.getEarthquakes().isEmpty()) {
         		tweets.addAll((ArrayList<String>)eResults.getEarthquakes());
         	}
+        	
+        	
         	//now refresh the listView
         	adapter.notifyDataSetChanged();
         	
