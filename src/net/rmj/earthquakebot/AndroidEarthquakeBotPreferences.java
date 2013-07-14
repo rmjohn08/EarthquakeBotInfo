@@ -9,6 +9,7 @@ import android.preference.PreferenceManager;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.Toast;
 
 public class AndroidEarthquakeBotPreferences extends Activity {
 
@@ -50,10 +51,11 @@ public class AndroidEarthquakeBotPreferences extends Activity {
                 prefEditor.putString(EarthquakeBotUtil.PREFERENCE_PLACES, strPlaces);
                 prefEditor.commit();
                 
-             // Go to the Main screen
-            	Intent intent = new Intent(AndroidEarthquakeBotPreferences.this ,AndroidEarthquakeBotActivity.class);
-       			startActivity(intent);
-            	
+                // Go to the Main screen
+            	//Intent intent = new Intent(AndroidEarthquakeBotPreferences.this ,AndroidEarthquakeBotActivity.class);
+       			//startActivity(intent);
+                Toast.makeText(AndroidEarthquakeBotPreferences.this, "Preferences changed...",
+	                    Toast.LENGTH_SHORT).show();
                 
 			}
 		});

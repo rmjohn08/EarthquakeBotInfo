@@ -206,10 +206,10 @@ public class EarthquakeBotXMLHandler extends DefaultHandler {
 			//Log.i("depth",new String(ch,start,length));
 			med.setSourceDepth(new String(ch,start,length));
 		}else if(this.update){
-			//整个xml数据更新时间
+			//
 			updateDate=c
 		}else if(this.author){
-			//数据来源：美国国家地理总局
+			//
 			authorName=new String(ch,start,length);
 		} */
 	    

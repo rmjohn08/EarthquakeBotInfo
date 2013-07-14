@@ -32,13 +32,13 @@ public class EarthquakeXMLParser {
 		//	eds.refreshData();
 			
 		//}else{
-		//	System.out.println("NO¡¡new Data to update");
+		//	System.out.println("NOnew Data to update");
 		//	myXMLHandler.setIsNeedUpdateData(false);
 		//}
 		
 		URL url;
 		try {
-			// SAXPArserFactory ¹¤³§.//
+			// SAXPArserFactory .//
 			SAXParserFactory spf = SAXParserFactory.newInstance();
 			SAXParser sp = spf.newSAXParser();
 

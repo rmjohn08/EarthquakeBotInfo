@@ -23,7 +23,7 @@ public class EarthquakeInfoService extends Service {
 		protected final String DEBUG_TAG=this.getClass().getName();
 		private Timer timer = new Timer();
 		private long DELAY = 0;
-		private long UPDATE = 1000 * 60;// * 30;
+		private long UPDATE = 1000 * 60 * 30;
 		private int hours = 24;
 		private String placesToWatch="";
 		

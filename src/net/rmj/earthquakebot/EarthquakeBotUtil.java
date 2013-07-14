@@ -15,9 +15,9 @@ public class EarthquakeBotUtil {
 	public static String PREFERENCE_PLACES="WATCH_PLACES";
 	public static String PREFERENCE_FILE = "EarthquakeBotPreferences";
 
-	public static String BOT_TWEET_XML = "http://10.0.2.2/user_timeline.xml";
-			//"https://api.twitter.com/1/statuses/user_timeline.xml?screen_name=earthquakeBot";
-			//
+	public static String BOT_TWEET_XML = "https://api.twitter.com/1/statuses/user_timeline.xml?screen_name=earthquakeBot";
+			//local 
+			//"http://10.0.2.2/user_timeline.xml";
 			//
 			//"https://api.twitter.com/1/statuses/user_timeline.xml?screen_name=earthquakeBot";
 			//

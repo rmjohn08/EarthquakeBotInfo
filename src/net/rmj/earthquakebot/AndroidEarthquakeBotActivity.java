@@ -11,7 +11,9 @@ import android.content.Intent;
 import android.content.ServiceConnection;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.os.Handler;
 import android.os.IBinder;
+import android.os.Message;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -33,13 +35,16 @@ import android.widget.Toast;
  * @author Ronaldo Johnson
  * February 7, 2012. 
  */
-public class AndroidEarthquakeBotActivity extends ListActivity {
+public class AndroidEarthquakeBotActivity extends ListActivity implements Runnable{
 	private EarthquakeInfoService service;
 	private final int REFRESH_ID=1;
 	private final int PREFERENCES_ID=2;
 	
 	ArrayAdapter<String> adapter;
-	ArrayList<String> tweets;
+	protected ProgressDialog pd;
+	EarthquakeBotResults eResults = new EarthquakeBotResults();
+	
+	ArrayList<String> tweets= new ArrayList<String>();
 	private int hours = 48;
 	
     /** Called when the activity is first created. */
@@ -49,15 +54,11 @@ public class AndroidEarthquakeBotActivity extends ListActivity {
         Log.i("AndroidEarthquakeBot","Creating app...");
         try {
         	//setContentView(R.layout.main);
-        	//bindService();
-        	//tweets = new ArrayList<String>();
-        	//adapter = new ArrayAdapter<String>(this,R.layout.main,
-        	//		R.id.earthquakeTweets,tweets);
-        	
-        	//refreshTweets();
-        	//tweets.add("No earthquake data found. Use Refresh to try again.") ;
-			//adapter.notifyDataSetChanged();
-			
+        	bindService();
+        	Log.i("AndroidEarthquakeBot","Starting app...");
+        	retrieveData();
+        	adapter = new ArrayAdapter<String>(this,R.layout.main,R.id.earthquakeTweets,tweets);
+        	setListAdapter(adapter);
         	
         } catch (Exception ex) {
         	ex.printStackTrace();
@@ -65,50 +66,53 @@ public class AndroidEarthquakeBotActivity extends ListActivity {
       
     }
     
-    /*
+    private void retrieveData() {
+    	pd = ProgressDialog.show(this, "Retrieving data", "Please wait...",true,false);
+    	Thread thread = new Thread(this);
+    	thread.start();
+    }
+    
+    /**
+     * when app starts
+     */
     public void onStart() {
     	super.onStart();
     	Log.i("AndroidEarthquakeBot", "Starting app...");
     	
     	
     }
-    
+    /**
+     * when it comes to the foreground
+     */
     public void onResume() {
     	super.onResume();
     	Log.i("AndroidEarthquakeBot","Resuming app...");
-    	tweets = new ArrayList<String>();
-    	adapter = new ArrayAdapter<String>(this,R.layout.main,R.id.earthquakeTweets,tweets);
-    	//this..setListAdapter(adapter);
-    	
-    	
+    	//tweets = new ArrayList<String>();
+    	//adapter = new ArrayAdapter<String>(this,R.layout.main,R.id.earthquakeTweets,tweets);
+    	//setListAdapter(adapter);
+    	    	
     	//this is extra because it seems it will be always false
-    	if (service!=null) {
-    		this.getTweetsFromService(false);
-    	} else {
-    		//ProgressDialog pd = ProgressDialog.show(AndroidEarthquakeBotActivity.this,"Loading","Please wait");
-    		//pd.show();
-    		refreshTweets();
-    		if (tweets.isEmpty()) {
-    			tweets.add("No earthquake data found. Use Refresh to try again.") ;
-    			adapter.notifyDataSetChanged();
-    			
-    		}
+    	//if (service!=null) {
+    	//	this.getTweetsFromService(false);
+    	//} else {
+    	//	//ProgressDialog pd = ProgressDialog.show(AndroidEarthquakeBotActivity.this,"Loading","Please wait");
+    	//	//pd.show();
+    		
     		//pd.dismiss();
-    	}
+    	
     }
-   */
     
     /**
      * called when the Menu key of the device is clicked
      * @return
      */
-    /*public boolean onCreateOptionsMenu(Menu menu) {
+    public boolean onCreateOptionsMenu(Menu menu) {
     	//creates the option menu
     	menu.add(0, REFRESH_ID, 0, "Refresh");
     	menu.add(0, PREFERENCES_ID, 0, "Preferences");
     	
     	return true;
-    }*/
+    }
     
     /**
      * when the option is selected from the menu
@@ -117,7 +121,7 @@ public class AndroidEarthquakeBotActivity extends ListActivity {
     	
     	switch(item.getItemId()) {
     	case REFRESH_ID:
-    		this.refreshTweets();
+    		this.retrieveData();
     		break;
     	case PREFERENCES_ID:
     		// Go to the Main screen
@@ -193,7 +197,7 @@ public class AndroidEarthquakeBotActivity extends ListActivity {
         
         try {
 	       
-        	EarthquakeBotResults eResults = new EarthquakeBotResults();
+        	eResults = new EarthquakeBotResults();
         	EarthquakeBotUtil.getQuakesInLastHours(hours, list,placesWatch, eResults);
         	
         	if (eResults.getEarthquakes()!=null && !eResults.getEarthquakes().isEmpty()) {
@@ -201,14 +205,6 @@ public class AndroidEarthquakeBotActivity extends ListActivity {
         	}
         	
         	
-        	//now refresh the listView
-        	adapter.notifyDataSetChanged();
-        	
-	        if (eResults.getFoundPlaces()!=null && !eResults.getFoundPlaces().isEmpty()) {
-	        	// notify here there are places found
-	            Toast.makeText(AndroidEarthquakeBotActivity.this, "Earthquake in watched areas...",
-	                    Toast.LENGTH_LONG).show();
-	        }
 	        
         } catch (Exception ex) {
         	ex.printStackTrace();
@@ -217,5 +213,28 @@ public class AndroidEarthquakeBotActivity extends ListActivity {
 	}
 
 	
+	public void run() {
+		//run it here
+		refreshTweets();
+		handler.sendEmptyMessage(0);
+	}
 	
+	private Handler handler = new Handler() {
+		public void handleMessage(Message msg) {
+			pd.dismiss();
+			//now refresh the listView
+	    	adapter.notifyDataSetChanged();
+			
+	    	if (eResults.getFoundPlaces()!=null && !eResults.getFoundPlaces().isEmpty()) {
+	        	// notify here there are places found
+	            Toast.makeText(AndroidEarthquakeBotActivity.this, "Earthquake in watched areas...",
+	                    Toast.LENGTH_LONG).show();
+	        }
+			if (tweets.isEmpty()) {
+    			tweets.add("No earthquake data found. Use Refresh to try again.") ;
+    			adapter.notifyDataSetChanged();
+    			
+    		}
+		}
+	};
 }
